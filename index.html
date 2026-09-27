@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGemini AI - Asisten Belajar & Tutor Cerdas Berbasis Gemini API</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Marked.js for Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre {
+      font-family: 'Fira Code', monospace;
+    }
+    .prose pre {
+      background-color: #0f172a;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      border: 1px solid #334155;
+      overflow-x: auto;
+    }
+    .prose code {
+      color: #38bdf8;
+      background: #1e293b;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.375rem;
+      font-size: 0.9em;
+    }
+    .prose pre code {
+      color: #f8fafc;
+      background: transparent;
+      padding: 0;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Header Navigation -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+        <i class="fa-solid fa-graduation-cap text-white text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-lg text-white tracking-tight">EduGemini AI</h1>
+          <span class="px-2 py-0.5 text-xs font-semibold bg-indigo-500/20 text-indigo-400 rounded-full border border-indigo-500/30">Hacktiv8 Final Project</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Intelligent Learning Companion & Multi-Persona Tutor with Gemini API</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <!-- Status Badge -->
+      <div id="apiStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="apiStatusText">Simulation Mode Active</span>
+      </div>
+
+      <!-- Export Button -->
+      <button onclick="exportChatMarkdown()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition shadow-sm">
+        <i class="fa-solid fa-file-export text-indigo-400"></i>
+        <span>Ekspor Chat (.md)</span>
+      </button>
+
+      <!-- Toggle Mobile Sidebar -->
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">
+        <i class="fa-solid fa-sliders text-base"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Sidebar: Creative Configuration Parameters -->
+    <aside id="sidebar" class="w-80 lg:w-88 bg-slate-900/95 border-r border-slate-800 flex flex-col p-5 overflow-y-auto shrink-0 fixed inset-y-0 left-0 z-40 lg:static transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-2 text-indigo-400 font-bold text-sm tracking-wide uppercase">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Parameter Kreatif LLM</span>
+        </div>
+        <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 flex-1">
+        <!-- 1. Gemini API Key Input -->
+        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-key text-amber-400 mr-1.5"></i>Gemini API Key</span>
+            <span class="text-[10px] text-slate-500">Opsional / Free Tier</span>
+          </label>
+          <div class="relative">
+            <input type="password" id="geminiApiKey" placeholder="AIzaSy..." 
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+              onchange="updateApiStatus()" />
+            <button onclick="toggleKeyVisibility()" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300">
+              <i id="keyEyeIcon" class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+            Tanpa API key, chatbot berjalan cerdas dalam <b>Mode Simulasi Interaktif</b>.
+          </p>
+        </div>
+
+        <!-- 2. Model Selection -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-microchip text-sky-400"></i>Model AI
+          </label>
+          <select id="modelSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="gemini-1.5-flash" selected>gemini-1.5-flash (Cepat, Ringan & Cerdas)</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro (Penalaran Kompleks & Matematika)</option>
+            <option value="gemini-pro">gemini-pro (Standar Stabil)</option>
+          </select>
+        </div>
+
+        <!-- 3. Domain & Persona -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-ninja text-emerald-400"></i>Domain Pengetahuan & Persona
+          </label>
+          <select id="personaSelect" onchange="onPersonaChanged()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="data_science" selected>🤖 Data Science & AI Mentor</option>
+            <option value="math_science">📐 Tutor Matematika & Sains</option>
+            <option value="coding_dev">💻 Asisten Pemrograman & Software Dev</option>
+            <option value="academic_writing">✍️ Tutor Bahasa & Penulisan Ilmiah</option>
+            <option value="study_buddy">🌟 Study Buddy & Motivator Belajar</option>
+          </select>
+          <p id="personaDesc" class="text-[11px] text-indigo-300/80 bg-indigo-950/40 p-2.5 rounded-lg border border-indigo-900/40 mt-2">
+            Membimbing Machine Learning, Statistik, Python, dan Rekayasa Prompt secara runtut.
+          </p>
+        </div>
+
+        <!-- 4. Tone of Voice / Gaya Bahasa -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-comments text-violet-400"></i>Gaya Bahasa (Tone of Voice)
+          </label>
+          <select id="toneSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="casual" selected>😎 Santai & Gaul (Friendly Mentor)</option>
+            <option value="formal">👔 Formal & Akademis Baku</option>
+            <option value="eli5">👶 Sederhana & Ramah Pemula (ELI5)</option>
+            <option value="concise">⚡ Ringkas & To-The-Point</option>
+          </select>
+        </div>
+
+        <!-- 5. LLM Hyperparameters -->
+        <div class="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800 space-y-3.5">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-temperature-half text-rose-400"></i>Temperature</span>
+            <span id="tempValue" class="font-mono text-indigo-400 font-bold">0.70</span>
+          </div>
+          <input type="range" id="tempSlider" min="0.0" max="1.0" step="0.05" value="0.70"
+            oninput="document.getElementById('tempValue').innerText = Number(this.value).toFixed(2)"
+            class="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg" />
+          <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+            <span>Presisi (0.0)</span>
+            <span>Seimbang (0.7)</span>
+            <span>Kreatif (1.0)</span>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800/80">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1.5">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-ruler-combined text-teal-400"></i>Max Output Tokens</span>
+              <span id="tokensValue" class="font-mono text-indigo-400 font-bold">2048</span>
+            </div>
+            <input type="range" id="tokensSlider" min="512" max="4096" step="256" value="2048"
+              oninput="document.getElementById('tokensValue').innerText = this.value"
+              class="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg" />
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <button onclick="clearChatHistory()" class="w-full py-2.5 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/20 flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Bersihkan Riwayat Percakapan</span>
+        </button>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+        <p class="text-[11px] text-slate-500 font-medium">Hacktiv8 AI Data Science Project</p>
+        <p class="text-[10px] text-slate-600 mt-0.5">Powered by Google Gemini 1.5 API</p>
+      </div>
+    </aside>
+
+    <!-- Main Chat Workspace -->
+    <main class="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+
+      <!-- Chat Active Bar -->
+      <div class="px-6 py-2.5 bg-slate-900/60 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          <span>Sesi Aktif: <strong id="activePersonaHeader" class="text-slate-200">Data Science & AI Mentor</strong></span>
+          <span class="text-slate-600">•</span>
+          <span id="activeToneHeader" class="text-slate-400 italic">Santai & Gaul</span>
+        </div>
+        <div class="flex items-center gap-3 text-slate-500 font-mono text-[11px]">
+          <span id="messageCount">1 pesan</span>
+        </div>
+      </div>
+
+      <!-- Chat Message Thread (Scrollable) -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6">
+        <!-- Initial Assistant Welcome Message -->
+        <div class="flex gap-4 max-w-3xl mr-auto">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-400 shadow-sm mt-0.5">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-indigo-400">EduGemini AI</span>
+              <span class="text-[10px] text-slate-500">Baru saja</span>
+            </div>
+            <div class="p-4 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 text-sm leading-relaxed prose prose-invert max-w-none shadow-sm">
+              <p>Halo! Saya <strong>EduGemini AI</strong>, asisten belajar dan tutor cerdas Anda yang ditenagai oleh <strong>Google Gemini API</strong>.</p>
+              <p>Saat ini saya siap mendampingi Anda belajar dengan persona <strong>Data Science & AI Mentor</strong>. Silakan pilih topik di bawah atau ketikkan pertanyaan materi apa pun yang ingin Anda diskusikan!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Prompt Pills -->
+      <div class="px-4 lg:px-8 py-2 bg-slate-950 border-t border-slate-900 flex items-center gap-2 overflow-x-auto text-xs no-scrollbar">
+        <span class="text-slate-500 font-medium whitespace-nowrap text-[11px]"><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>Saran Pertanyaan:</span>
+        <div id="quickPromptContainer" class="flex items-center gap-2 shrink-0">
+          <!-- Dynamically Populated -->
+        </div>
+      </div>
+
+      <!-- Chat Input Field -->
+      <div class="p-4 lg:px-8 bg-slate-900/90 border-t border-slate-800">
+        <form onsubmit="handleUserSubmit(event)" class="relative flex items-center max-w-4xl mx-auto">
+          <textarea id="userInput" rows="1" placeholder="Tanyakan konsep, kode, rumus, atau tugas belajar Anda di sini... (Enter untuk kirim)" 
+            class="w-full bg-slate-950 border border-slate-700/80 rounded-2xl pl-4 pr-24 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none shadow-inner leading-relaxed transition"
+            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleUserSubmit(event); }"></textarea>
+          
+          <div class="absolute right-2.5 flex items-center gap-1.5">
+            <button type="submit" id="sendBtn" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-indigo-600/30">
+              <i class="fa-solid fa-paper-plane text-sm"></i>
+            </button>
+          </div>
+        </form>
+        <p class="text-[11px] text-center text-slate-500 mt-2">
+          EduGemini AI dapat menyusun penjelasan terperinci, contoh kode Python/SQL, dan penyelesaian matematika langkah demi langkah.
+        </p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Persona Definitions & Prompts
+    const PERSONAS_DATA = {
+      data_science: {
+        title: "Data Science & AI Mentor",
+        icon: "fa-robot",
+        desc: "Membimbing Machine Learning, Statistik, Python, dan Rekayasa Prompt secara runtut.",
+        prompts: [
+          "Jelaskan perbedaan Supervised vs Unsupervised Learning secara intuitif.",
+          "Bagaimana cara menangani data imbalance (SMOTE vs Class Weight) di Python?",
+          "Tuliskan fungsi Python untuk menghitung akurasi, precision, recall, dan F1-Score."
+        ],
+        systemPrompt: "Anda adalah Senior Data Scientist dan Mentor AI di Hacktiv8. Tugas Anda adalah membimbing pengguna belajar Data Science, Machine Learning, Deep Learning, statistik, dan pemrograman Python dengan penjelasan yang runtut, berbasis contoh nyata, dan kode yang bersih."
+      },
+      math_science: {
+        title: "Tutor Matematika & Sains",
+        icon: "fa-calculator",
+        desc: "Penyelesaian rumus matematika, fisika, dan logika terstruktur langkah demi langkah.",
+        prompts: [
+          "Bagaimana cara menurunkan rumus turunan fungsi f(x) = x^3 - 4x + 7?",
+          "Jelaskan konsep Teorema Bayes dengan analogi tes diagnostik medis.",
+          "Mengapa langit berwarna biru? Jelaskan fenomena hamburan Rayleigh."
+        ],
+        systemPrompt: "Anda adalah Tutor Ahli Matematika dan Sains. Bantu pengguna menyelesaikan soal perhitungan, menurunkan rumus matematis, serta menjelaskan konsep fisika/sains langkah demi langkah secara logis."
+      },
+      coding_dev: {
+        title: "Asisten Pemrograman & Dev",
+        icon: "fa-code",
+        desc: "Spesialis coding (Python, JS, SQL), debugging, dan arsitektur software.",
+        prompts: [
+          "Bagaimana cara kerja API RESTful dan apa perbedaan metode GET vs POST?",
+          "Bantu saya membuat query SQL untuk mencari 5 pelanggan dengan transaksi tertinggi.",
+          "Jelaskan konsep Asynchronous Programming di JavaScript/Python."
+        ],
+        systemPrompt: "Anda adalah Software Engineer Senior. Bantu pengguna menulis kode efisien, menemukan bug (debugging), menjelaskan struktur data & algoritma, serta best practices pemrograman."
+      },
+      academic_writing: {
+        title: "Tutor Bahasa & Penulisan Ilmiah",
+        icon: "fa-pen-nib",
+        desc: "Pakar tata bahasa baku EYD, struktur esai, penulisan abstrak, dan jurnal.",
+        prompts: [
+          "Bantu saya menyusun paragraf pendahuluan esai tentang dampak Generative AI.",
+          "Koreksi kalimat ini agar lebih efektif dan formal sesuai EYD.",
+          "Bagaimana cara membuat abstrak penelitian yang baik?"
+        ],
+        systemPrompt: "Anda adalah Dosen Bahasa dan Penulisan Akademis. Bantu pengguna menyusun esai, memeriksa tata bahasa, memperkaya kosakata, serta menyusun argumen akademis yang meyakinkan."
+      },
+      study_buddy: {
+        title: "Study Buddy & Motivator",
+        icon: "fa-star",
+        desc: "Rekan belajar santai, perencana jadwal 7 hari, dan pemecah prokrastinasi.",
+        prompts: [
+          "Buatkan jadwal belajar 7 hari untuk menguasai dasar-dasar Library Pandas & NumPy.",
+          "Berikan saya 3 kuis logika ringan untuk menguji pemahaman saya hari ini.",
+          "Bagaimana cara mengatasi rasa malas (prokrastinasi) saat tugas akhir?"
+        ],
+        systemPrompt: "Anda adalah Study Buddy yang suportif dan antusias. Bantu pengguna membagi topik belajar menjadi sub-target harian, memberikan kuis interaktif, dan menjaga motivasi belajar."
+      }
+    };
+
+    const TONES_DATA = {
+      casual: "Gunakan gaya bahasa santai, kasual, bersahabat, seperti mengobrol dengan rekan belajar yang asyik namun tetap informatif dan sopan.",
+      formal: "Gunakan bahasa Indonesia baku yang formal, terstruktur, berbasis data ilmiah, dan bernada akademis.",
+      eli5: "Jelaskan dengan analogi kehidupan sehari-hari, bahasa yang sangat sederhana, tanpa jargon rumit sehingga pemula dapat langsung paham.",
+      concise: "Berikan jawaban padat, langsung pada intinya dalam poin-poin terstruktur tanpa pengantar berbelit-belit."
+    };
+
+    // Chat Memory Buffer
+    let conversationHistory = [
+      {
+        role: "assistant",
+        content: "Halo! Saya **EduGemini AI**, asisten belajar cerdas Anda. Saat ini saya berperan sebagai **Data Science & AI Mentor**. Ada materi atau konsep yang ingin kita diskusikan?",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ];
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      onPersonaChanged();
+      updateApiStatus();
+      updateMessageCount();
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+    }
+
+    function toggleKeyVisibility() {
+      const input = document.getElementById('geminiApiKey');
+      const icon = document.getElementById('keyEyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    function updateApiStatus() {
+      const key = document.getElementById('geminiApiKey').value.trim();
+      const badge = document.getElementById('apiStatusBadge');
+      const text = document.getElementById('apiStatusText');
+      if (key) {
+        badge.className = "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium";
+        text.innerText = "Gemini Live API Ready";
+      } else {
+        badge.className = "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-medium";
+        text.innerText = "Simulation Demo Mode";
+      }
+    }
+
+    function onPersonaChanged() {
+      const personaKey = document.getElementById('personaSelect').value;
+      const data = PERSONAS_DATA[personaKey];
+      document.getElementById('personaDesc').innerText = data.desc;
+      document.getElementById('activePersonaHeader').innerText = data.title;
+      
+      const toneSelect = document.getElementById('toneSelect');
+      document.getElementById('activeToneHeader').innerText = toneSelect.options[toneSelect.selectedIndex].text;
+
+      // Update Quick Suggestions
+      const container = document.getElementById('quickPromptContainer');
+      container.innerHTML = '';
+      data.prompts.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = "px-3 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-slate-300 text-xs whitespace-nowrap border border-slate-700/80 transition flex items-center gap-1.5";
+        btn.innerHTML = `<i class="fa-regular fa-comment-dots text-indigo-400"></i> ${p}`;
+        btn.onclick = () => {
+          document.getElementById('userInput').value = p;
+          handleUserSubmit(new Event('submit'));
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function updateMessageCount() {
+      const count = conversationHistory.length;
+      document.getElementById('messageCount').innerText = `${count} pesan`;
+    }
+
+    function renderMessage(role, content, time) {
+      const container = document.getElementById('chatMessages');
+      const isUser = role === 'user';
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `flex gap-4 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-0.5 ${
+        isUser 
+          ? 'bg-slate-700 border border-slate-600 text-slate-200' 
+          : 'bg-indigo-600/30 border border-indigo-500/30 text-indigo-400'
+      }`;
+      avatar.innerHTML = isUser ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-graduation-cap"></i>';
+
+      const contentBox = document.createElement('div');
+      contentBox.className = "space-y-1.5 flex-1";
+
+      const meta = document.createElement('div');
+      meta.className = `flex items-center gap-2 ${isUser ? 'justify-end' : ''}`;
+      meta.innerHTML = `
+        <span class="text-xs font-bold ${isUser ? 'text-slate-300' : 'text-indigo-400'}">${isUser ? 'Anda' : 'EduGemini AI'}</span>
+        <span class="text-[10px] text-slate-500">${time}</span>
+      `;
+
+      const bubble = document.createElement('div');
+      bubble.className = `p-4 rounded-2xl text-sm leading-relaxed prose prose-invert max-w-none shadow-sm ${
+        isUser 
+          ? 'rounded-tr-sm bg-indigo-600 text-white border border-indigo-500/30' 
+          : 'rounded-tl-sm bg-slate-900 text-slate-200 border border-slate-800'
+      }`;
+      
+      bubble.innerHTML = marked.parse(content);
+
+      // Highlight code blocks
+      bubble.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+      });
+
+      contentBox.appendChild(meta);
+      contentBox.appendChild(bubble);
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(contentBox);
+      container.appendChild(msgDiv);
+
+      // Scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function handleUserSubmit(e) {
+      if (e) e.preventDefault();
+      const inputEl = document.getElementById('userInput');
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // 1. Simpan dan render input pengguna
+      conversationHistory.push({ role: 'user', content: text, time: timeNow });
+      renderMessage('user', text, timeNow);
+      inputEl.value = '';
+      updateMessageCount();
+
+      // 2. Loading state
+      const sendBtn = document.getElementById('sendBtn');
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sm"></i>';
+
+      try {
+        const reply = await callGeminiOrSimulate(text);
+        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        conversationHistory.push({ role: 'assistant', content: reply, time: replyTime });
+        renderMessage('assistant', reply, replyTime);
+        updateMessageCount();
+      } catch (err) {
+        renderMessage('assistant', `⚠️ **Error:** ${err.message}`, timeNow);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i>';
+      }
+    }
+
+    async function callGeminiOrSimulate(promptText) {
+      const apiKey = document.getElementById('geminiApiKey').value.trim();
+      const model = document.getElementById('modelSelect').value;
+      const personaKey = document.getElementById('personaSelect').value;
+      const toneKey = document.getElementById('toneSelect').value;
+      const temperature = parseFloat(document.getElementById('tempSlider').value);
+      const maxTokens = parseInt(document.getElementById('tokensSlider').value);
+
+      const persona = PERSONAS_DATA[personaKey];
+      const toneInstruction = TONES_DATA[toneKey];
+
+      const fullInstruction = `${persona.systemPrompt}\n\nGAYA BAHASA & TONE:\n${toneInstruction}\n\nFormat jawaban dalam Markdown terstruktur rapi.`;
+
+      // Jika ada API Key: Panggil endpoint REST API Gemini resmi
+      if (apiKey) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        
+        // Bangun riwayat percakapan untuk multi-turn memory
+        const contents = [];
+        conversationHistory.slice(-6).forEach(item => {
+          contents.push({
+            role: item.role === 'user' ? 'user' : 'model',
+            parts: [{ text: item.content }]
+          });
+        });
+
+        const requestBody = {
+          contents: contents,
+          systemInstruction: {
+            parts: [{ text: fullInstruction }]
+          },
+          generationConfig: {
+            temperature: temperature,
+            maxOutputTokens: maxTokens,
+            topP: 0.95
+          }
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP ${response.status}: Gagal memanggil Gemini API`);
+        }
+
+        const data = await response.json();
+        const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        return candidate || "Maaf, respon dari model kosong.";
+      }
+
+      // Mode Simulasi Interaktif Responsif (Jika belum ada API key)
+      await new Promise(r => setTimeout(r, 600)); // Latensi simulasi alami
+      const lower = promptText.toLowerCase();
+
+      if (lower.includes("supervised") || lower.includes("machine learning") || lower.includes("klasifikasi")) {
+        return `### Penjelasan Intuitif: Supervised vs Unsupervised Learning\n\n` +
+               `Halo pembelajar tangguh! Sebagai **${persona.title}**, mari kita bedah konsep dasar ini:\n\n` +
+               `#### 1. Supervised Learning (Pembelajaran Terawasi)\n` +
+               `- **Prinsip Utama:** Algoritma dilatih menggunakan dataset yang memiliki **label / target** (ground truth).\n` +
+               `- **Analogi Kehidupan:** Seperti seorang siswa yang belajar mengerjakan soal latihan yang sudah dilengkapi kunci jawaban di buku.\n` +
+               `- **Contoh Kasus Industri:**\n` +
+               `  - Klasifikasi email (Spam vs Bukan Spam)\n` +
+               `  - Prediksi churn pelanggan telekomunikasi\n` +
+               `  - Prediksi estimasi harga properti (Regresi)\n\n` +
+               `#### 2. Unsupervised Learning (Pembelajaran Tanpa Pengawasan)\n` +
+               `- **Prinsip Utama:** Algoritma diberikan dataset **tanpa label**, dan bertugas mencari struktur/pola tersembunyi (*hidden patterns*).\n` +
+               `- **Analogi Kehidupan:** Memilah-milah koleksi prangko atau buku tanpa petunjuk kategori, murni berdasarkan kemiripan warna dan ukuran.\n` +
+               `- **Contoh Kasus Industri:**\n` +
+               `  - Customer Segmentation (K-Means Clustering)\n` +
+               `  - Deteksi anomali fraud transaksi kartu kredit\n` +
+               `  - Reduksi dimensi data (PCA)\n\n` +
+               `\`\`\`python\n# Contoh Singkat Scikit-Learn Clustering\nfrom sklearn.cluster import KMeans\n\nkmeans = KMeans(n_clusters=3, random_state=42)\nkmeans.fit(X_customer_features)\nlabels = kmeans.labels_\nprint("Hasil Klaster Pelanggan:", labels[:10])\n\`\`\`\n\n` +
+               `💡 *Catatan Mentor:* Parameter aktif Anda saat ini: **Temperature = ${temperature.toFixed(2)}** dengan gaya bahasa **${document.getElementById('toneSelect').value}**. Ada sub-topik yang ingin dibahas lebih lanjut?`;
+      } else if (lower.includes("turunan") || lower.includes("rumus") || lower.includes("matematika")) {
+        return `### Penyelesaian Turunan Fungsi Aljabar\n\n` +
+               `Mari kita selesaikan fungsi berikut secara terstruktur langkah demi langkah:\n\n` +
+               `Diketahui fungsi:\n` +
+               `$$f(x) = x^3 - 4x + 7$$\n\n` +
+               `**Rumus Dasar Turunan Pangkat (Power Rule):**\n` +
+               `$$\\frac{d}{dx}[a \\cdot x^n] = a \\cdot n \\cdot x^{n-1}$$\n\n` +
+               `**Langkah Penyelesaian:**\n` +
+               `1. Turunan dari suku $x^3$:\n` +
+               `   $$1 \\cdot 3 \\cdot x^{3-1} = 3x^2$$\n` +
+               `2. Turunan dari suku $-4x$:\n` +
+               `   $$-4 \\cdot 1 \\cdot x^{1-1} = -4 \\cdot 1 = -4$$\n` +
+               `3. Turunan dari konstanta $7$ adalah $0$.\n\n` +
+               `**Hasil Akhir Turunan Pertama:**\n` +
+               `$$f'(x) = 3x^2 - 4$$\n\n` +
+               `Apakah Anda ingin mencari titik stasioner atau nilai kritis dari fungsi ini selanjutnya?`;
+      } else {
+        return `### Respon EduGemini AI (${persona.title})\n\n` +
+               `Terima kasih atas pertanyaan Anda: **"${promptText}"**.\n\n` +
+               `Dari perspektif **${persona.title}**, hal penting yang perlu dipahami meliputi:\n` +
+               `- **1. Fondasi Konseptual:** Memahami definisi dasar dan batasan masalah yang sedang dipecahkan.\n` +
+               `- **2. Implementasi Praktis:** Mengaitkan konsep ini dengan workflow atau kode program di dunia industri nyata.\n` +
+               `- **3. Validasi & Evaluasi:** Menguji solusi menggunakan metrik objektif.\n\n` +
+               `*Catatan Parameter: Sesi ini berjalan dengan konfigurasi model \`${model}\`, Temperature \`${temperature.toFixed(2)}\`, dan gaya \`${document.getElementById('toneSelect').value}\`.*`;
+      }
+    }
+
+    function clearChatHistory() {
+      if (confirm("Apakah Anda yakin ingin menghapus seluruh riwayat percakapan?")) {
+        conversationHistory = [];
+        document.getElementById('chatMessages').innerHTML = '';
+        renderMessage('assistant', "Riwayat percakapan telah dibersihkan. Silakan ajukan pertanyaan baru Anda!", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        updateMessageCount();
+      }
+    }
+
+    function exportChatMarkdown() {
+      let md = `# EduGemini AI - Transkrip Percakapan Belajar\n\n`;
+      md += `*Tanggal Ekspor: ${new Date().toLocaleString('id-ID')}*\n`;
+      md += `*Persona: ${document.getElementById('personaSelect').value} | Model: ${document.getElementById('modelSelect').value}*\n\n---\n\n`;
+
+      conversationHistory.forEach((msg, idx) => {
+        const roleName = msg.role === 'user' ? '👤 Pengguna' : '🎓 EduGemini AI';
+        md += `### ${roleName} (${msg.time})\n\n${msg.content}\n\n---\n\n`;
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EduGemini_Chat_Session_${new Date().toISOString().slice(0,10)}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
